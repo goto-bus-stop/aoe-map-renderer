@@ -54,7 +54,7 @@ module.exports = class MapRenderer {
       row.forEach((tile, x) => {
         const texture = this.terrainTextures[tile.type]
         ctx.drawImage(texture,
-          0, 0,
+          (x * TILE_SIZE) % texture.width, (y * TILE_SIZE) % texture.height,
           TILE_SIZE, TILE_SIZE,
           x * TILE_SIZE, y * TILE_SIZE,
           TILE_SIZE, TILE_SIZE)
