@@ -13,3 +13,9 @@ renderer.load(require('./demoMap.json')).then(() => {
 document.body.appendChild(canvas)
 
 window.renderer = renderer
+
+window.onresize = () => {
+  canvas.width = document.body.scrollWidth
+  canvas.height = document.body.scrollHeight
+  renderer.render()
+}
