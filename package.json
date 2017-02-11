@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "budo src/index.js:bundle.js",
-    "build": "browserify src/index.js -o bundle.js",
+    "start": "budo src/app.js:bundle.js",
+    "build": "browserify src/app.js -o bundle.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -20,6 +20,10 @@
     "presets": [
       "latest"
     ]
+  },
+  "dependencies": {
+    "load-img": "^1.0.0",
+    "pify": "^2.3.0"
   },
   "devDependencies": {
     "babel-preset-latest": "^6.22.0",
