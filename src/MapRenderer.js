@@ -25,6 +25,16 @@ function loadTerrainTextures (terrainTypes) {
     }, {}))
 }
 
+function getUniqueTerrainTypes (terrain) {
+  return Object.keys(
+    terrain.reduce((types, rows) => {
+      rows.forEach((tile) => {
+        types[tile.type] = true
+      })
+      return types
+    }, {}))
+}
+
 module.exports = class MapRenderer {
   constructor (canvas) {
     this.canvas = canvas
@@ -33,14 +43,7 @@ module.exports = class MapRenderer {
   load (terrain) {
     this.terrain = terrain
 
-    const terrainTypes = Object.keys(
-      terrain.reduce((types, rows) => {
-        rows.forEach((tile) => {
-          types[tile.type] = true
-        })
-        return types
-      }, {}))
-
+    const terrainTypes = getUniqueTerrainTypes(terrain)
     return loadTerrainTextures(terrainTypes).then((textures) => {
       this.terrainTextures = textures
     })
