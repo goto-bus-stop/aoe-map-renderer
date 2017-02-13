@@ -5,9 +5,21 @@
   <style>
     body { margin: 0 }
     canvas { display: block }
+
+    #input {
+      position: absolute;
+      top: 0;
+      left: 0;
+      padding: 5px;
+      background: lightgrey;
+    }
   </style>
 </head>
 <body>
+  <div id="input">
+    Select file: <input onchange="openfile(this.files[0])" type="file">
+  </div>
+
   <script src="bundle.js"></script>
 </body>
 </html>

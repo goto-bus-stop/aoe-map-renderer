@@ -34,7 +34,7 @@ function getUniqueTerrainTypes (terrain) {
   return Object.keys(
     terrain.reduce((types, rows) => {
       rows.forEach((tile) => {
-        types[tile.type] = true
+        types[tile.terrain] = true
       })
       return types
     }, {}))
@@ -126,7 +126,7 @@ module.exports = class MapRenderer {
         // Move one tile to the right.
         mat4.translate(mvMatrix, mvMatrix, [1, 0, 0])
 
-        const texture = this.terrainTextures[tile.type].bind()
+        const texture = this.terrainTextures[tile.terrain].bind()
 
         this.shader.bind()
         this.squareBuffer.bind()

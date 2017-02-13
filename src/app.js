@@ -1,4 +1,6 @@
 const raf = require('raf')
+const RecordedGame = require('recage').default
+const fileReader = require('file-component')
 const MapRenderer = require('./MapRenderer')
 
 const canvas = document.createElement('canvas')
@@ -14,14 +16,30 @@ function render () {
   }
 }
 
-renderer.load(require('./demoMap.json')).then(() => {
-  ready = true
-  render()
-})
+function open (file) {
+  fileReader(file).toArrayBuffer((err, result) => {
+    if (err) {
+      alert(`Could not open file: ${err.message}`)
+      return
+    }
+    RecordedGame(Buffer(result)).parseHeader(onHeader)
+  })
+}
+
+function onHeader (err, header) {
+  if (err) alert(`Could not read recorded game: ${err.message}`)
+  if (header) {
+    renderer.load(header.map).then(() => {
+      ready = true
+      render()
+    })
+  }
+}
 
 document.body.appendChild(canvas)
 
 window.renderer = renderer
+window.openfile = open
 
 window.onresize = () => {
   canvas.width = window.innerWidth
