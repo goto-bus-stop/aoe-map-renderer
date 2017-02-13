@@ -1,3 +1,7 @@
+const createBuffer = require('gl-buffer')
+const createShader = require('gl-shader')
+const createTexture = require('gl-texture2d')
+const mat4 = require('gl-mat4')
 const loadImage = require('pify')(require('load-img'))
 const textureNames = require('./textureNames')
 
@@ -35,33 +39,105 @@ function getUniqueTerrainTypes (terrain) {
     }, {}))
 }
 
+const tileVertexShader = `
+  precision highp float;
+
+  uniform mat4 mvMatrix;
+  uniform mat4 pMatrix;
+
+  attribute vec3 position;
+  varying vec2 v_coord;
+
+  void main () {
+    gl_Position = pMatrix * mvMatrix * vec4(position, 1.0);
+    v_coord = position.xy;
+  }
+`
+
+const tileFragmentShader = `
+  precision highp float;
+
+  uniform sampler2D texture;
+  varying vec2 v_coord;
+
+  void main () {
+    gl_FragColor = texture2D(texture, v_coord);
+  }
+`
+
+const squareVertices = [
+   1,  1, 0,
+  -1,  1, 0,
+   1, -1, 0,
+  -1, -1, 0
+]
+
+function makeSquareBuffer (gl) {
+  return createBuffer(gl, squareVertices)
+}
+
 module.exports = class MapRenderer {
   constructor (canvas) {
     this.canvas = canvas
+
+    const gl = canvas.getContext('webgl')
+    // const gl = WebGLDebugUtils.makeDebugContext(canvas.getContext('webgl'), undefined,
+    //   (fn, args) => console.log(`gl.${fn}(`, ...args, ')'))
+    this.gl = gl
+
+    this.shader = createShader(gl, tileVertexShader, tileFragmentShader)
+    this.shader.attributes.position.location = 0
+    this.squareBuffer = makeSquareBuffer(gl)
+
+    gl.viewport(0, 0, canvas.width, canvas.height)
+    gl.clearColor(0, 0, 0, 1)
+    gl.clear(gl.COLOR_BUFFER_BIT)
   }
 
   load (terrain) {
     this.terrain = terrain
 
     const terrainTypes = getUniqueTerrainTypes(terrain)
-    return loadTerrainTextures(terrainTypes).then((textures) => {
-      this.terrainTextures = textures
+    return loadTerrainTextures(terrainTypes).then((images) => {
+      this.terrainImages = images
+      this.terrainTextures = {}
+      Object.keys(images).forEach((key) => {
+        this.terrainTextures[key] = createTexture(this.gl, images[key])
+        this.terrainTextures[key].wrap = this.gl.REPEAT
+      })
     })
   }
 
   render () {
-    const ctx = this.canvas.getContext('2d')
-    ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
+    const { canvas, gl } = this
+    const aspect = canvas.width / canvas.height
+
+    gl.viewport(0, 0, canvas.width, canvas.height)
+
+    const pMatrix = mat4.create()
+    const mvMatrix = mat4.create()
+    mat4.perspective(pMatrix, 45, aspect, 0, 100)
+    mat4.identity(mvMatrix)
+    mat4.translate(mvMatrix, mvMatrix, [0, 0, -7])
 
     this.terrain.forEach((row, y) => {
       row.forEach((tile, x) => {
-        const texture = this.terrainTextures[tile.type]
-        ctx.drawImage(texture,
-          (x * TILE_SIZE) % texture.width, (y * TILE_SIZE) % texture.height,
-          TILE_SIZE, TILE_SIZE,
-          x * TILE_SIZE, y * TILE_SIZE,
-          TILE_SIZE, TILE_SIZE)
+        // Move one tile to the right.
+        mat4.translate(mvMatrix, mvMatrix, [1, 0, 0])
+
+        const texture = this.terrainTextures[tile.type].bind()
+
+        this.shader.bind()
+        this.squareBuffer.bind()
+        this.shader.attributes.position.pointer()
+        this.shader.uniforms.texture = texture
+        this.shader.uniforms.pMatrix = pMatrix
+        this.shader.uniforms.mvMatrix = mvMatrix
+
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4)
       })
+      // Move to the first tile in the next row.
+      mat4.translate(mvMatrix, mvMatrix, [-row.length, -1, 0])
     })
   }
 }

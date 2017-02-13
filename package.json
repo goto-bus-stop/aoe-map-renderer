@@ -22,6 +22,10 @@
     ]
   },
   "dependencies": {
+    "gl-buffer": "^2.1.2",
+    "gl-mat4": "^1.1.4",
+    "gl-shader": "^4.2.1",
+    "gl-texture2d": "^2.1.0",
     "load-img": "^1.0.0",
     "pify": "^2.3.0"
   },

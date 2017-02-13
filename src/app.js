@@ -1,13 +1,13 @@
 const MapRenderer = require('./MapRenderer')
 
 const canvas = document.createElement('canvas')
-canvas.width = document.body.scrollWidth
-canvas.height = document.body.scrollHeight
+canvas.width = window.innerWidth
+canvas.height = window.innerHeight
 
 const renderer = new MapRenderer(canvas)
 
 renderer.load(require('./demoMap.json')).then(() => {
-  renderer.render()
+  requestAnimationFrame(() => renderer.render())
 })
 
 document.body.appendChild(canvas)
@@ -15,7 +15,7 @@ document.body.appendChild(canvas)
 window.renderer = renderer
 
 window.onresize = () => {
-  canvas.width = document.body.scrollWidth
-  canvas.height = document.body.scrollHeight
+  canvas.width = window.innerWidth
+  canvas.height = window.innerHeight
   renderer.render()
 }
