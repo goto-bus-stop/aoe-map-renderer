@@ -93,6 +93,8 @@ module.exports = class MapRenderer {
     gl.viewport(0, 0, canvas.width, canvas.height)
     gl.clearColor(0, 0, 0, 1)
     gl.clear(gl.COLOR_BUFFER_BIT)
+
+    this.camera = new Camera(this.canvas)
   }
 
   load (terrain) {
@@ -115,11 +117,9 @@ module.exports = class MapRenderer {
 
     gl.viewport(0, 0, canvas.width, canvas.height)
 
-    const pMatrix = mat4.create()
+    const pMatrix = this.camera.matrix()
     const mvMatrix = mat4.create()
-    mat4.perspective(pMatrix, 45, aspect, 0, 100)
     mat4.identity(mvMatrix)
-    mat4.translate(mvMatrix, mvMatrix, [0, 0, -7])
 
     this.terrain.forEach((row, y) => {
       row.forEach((tile, x) => {
