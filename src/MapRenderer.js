@@ -4,8 +4,9 @@ const createTexture = require('gl-texture2d')
 const mat4 = require('gl-mat4')
 const loadImage = require('pify')(require('load-img'))
 const textureNames = require('./textureNames')
+const Camera = require('./Camera')
 
-const TILE_SIZE = 32
+const DEFAULT_TEXTURE = 'g_bla'
 
 /**
  * Load a texture by terrain ID.
@@ -13,7 +14,7 @@ const TILE_SIZE = 32
  * @return Promise<Image>
  */
 function loadTerrainTexture (type) {
-  return loadImage(`./resources/terrains/${textureNames[type]}_00_color.png`)
+  return loadImage(`./resources/terrains/${textureNames[type] || DEFAULT_TEXTURE}_00_color.png`)
 }
 
 /**
