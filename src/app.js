@@ -1,4 +1,4 @@
-const raf = require('raf')
+const rafloop = require('raf-loop')
 const RecordedGame = require('recage').default
 const fileReader = require('file-component')
 const MapRenderer = require('./MapRenderer')
@@ -10,12 +10,6 @@ canvas.height = window.innerHeight
 const renderer = new MapRenderer(canvas)
 let ready = false
 
-function render () {
-  if (ready) {
-    raf(() => renderer.render())
-  }
-}
-
 function open (file) {
   fileReader(file).toArrayBuffer((err, result) => {
     if (err) {
@@ -26,12 +20,13 @@ function open (file) {
   })
 }
 
+const engine = rafloop(() => renderer.render())
+
 function onHeader (err, header) {
   if (err) alert(`Could not read recorded game: ${err.message}`)
   if (header) {
     renderer.load(header.map).then(() => {
-      ready = true
-      render()
+      engine.start()
     })
   }
 }
@@ -39,10 +34,10 @@ function onHeader (err, header) {
 document.body.appendChild(canvas)
 
 window.renderer = renderer
+window.engine = engine
 window.openfile = open
 
 window.onresize = () => {
   canvas.width = window.innerWidth
   canvas.height = window.innerHeight
-  render()
 }
