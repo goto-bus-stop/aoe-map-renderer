@@ -77,6 +77,31 @@ function makeSquareBuffer (gl) {
   return createBuffer(gl, squareVertices)
 }
 
+function getTile (image, offsetX, offsetY, width, height) {
+  const canv = document.createElement('canvas')
+  canv.width = width
+  canv.height = height
+  canv.getContext('2d').drawImage(image,
+    offsetX, offsetY,
+    width, height,
+    0, 0,
+    width, height)
+  return canv
+}
+
+function createTiledTexture (gl, image) {
+  const TILESIZE = 64
+  const textures = []
+  for (let y = 0; y < 512; y += TILESIZE) {
+    for (let x = 0; x < 512; x += TILESIZE) {
+      const texture = createTexture(gl, getTile(image, x, y, TILESIZE, TILESIZE))
+      texture.wrap = gl.REPEAT
+      textures.push(texture)
+    }
+  }
+  return textures
+}
+
 module.exports = class MapRenderer {
   constructor (canvas) {
     this.canvas = canvas
@@ -105,8 +130,7 @@ module.exports = class MapRenderer {
       this.terrainImages = images
       this.terrainTextures = {}
       Object.keys(images).forEach((key) => {
-        this.terrainTextures[key] = createTexture(this.gl, images[key])
-        this.terrainTextures[key].wrap = this.gl.REPEAT
+        this.terrainTextures[key] = createTiledTexture(this.gl, images[key])
       })
     })
   }
@@ -116,6 +140,7 @@ module.exports = class MapRenderer {
     const aspect = canvas.width / canvas.height
 
     gl.viewport(0, 0, canvas.width, canvas.height)
+    gl.clear(gl.COLOR_BUFFER_BIT)
 
     const pMatrix = this.camera.matrix()
     const mvMatrix = mat4.create()
@@ -126,7 +151,9 @@ module.exports = class MapRenderer {
         // Move one tile to the right.
         mat4.translate(mvMatrix, mvMatrix, [1, 0, 0])
 
-        const texture = this.terrainTextures[tile.terrain].bind()
+        const tileIndex = (y * row.length + x) % 64
+
+        const texture = this.terrainTextures[tile.terrain][tileIndex].bind(0)
 
         this.shader.bind()
         this.squareBuffer.bind()
