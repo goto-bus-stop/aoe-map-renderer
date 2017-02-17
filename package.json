@@ -1,7 +1,7 @@
 {
   "name": "aoe-map-renderer",
   "version": "1.0.0",
-  "description": "",
+  "description": "Render Age of Empires 2 scenario maps using WebGL.",
   "main": "index.js",
   "scripts": {
     "start": "budo src/app.js:bundle.js",
