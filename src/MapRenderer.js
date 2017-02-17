@@ -17,6 +17,10 @@ function loadTerrainTexture (type) {
   return loadImage(`./resources/terrains/${textureNames[type] || DEFAULT_TEXTURE}_00_color.png`)
 }
 
+function loadBlendMode (mode) {
+  return loadImage(`./resources/blends/${mode}.png`)
+}
+
 /**
  * Load texture images for a list of terrain type IDs.
  *
@@ -59,10 +63,15 @@ const tileFragmentShader = `
   precision highp float;
 
   uniform sampler2D texture;
+  uniform sampler2D otherTexture;
+  uniform sampler2D blendMode;
   varying vec2 v_coord;
 
   void main () {
-    gl_FragColor = texture2D(texture, v_coord);
+    vec4 basePx = texture2D(texture, v_coord);
+    vec4 otherPx = texture2D(otherTexture, v_coord);
+    vec4 maskPx = texture2D(blendMode, v_coord);
+    gl_FragColor = mix(basePx, otherPx, 1.0 - maskPx.a);
   }
 `
 
@@ -132,6 +141,10 @@ module.exports = class MapRenderer {
       Object.keys(images).forEach((key) => {
         this.terrainTextures[key] = createTiledTexture(this.gl, images[key])
       })
+
+      return loadBlendMode('icewater').then((blendMode) => {
+        this.blendMode = createTiledTexture(this.gl, blendMode)
+      })
     })
   }
 
@@ -153,12 +166,16 @@ module.exports = class MapRenderer {
 
         const tileIndex = (y * row.length + x) % 64
 
+        const blendMode = this.blendMode[tileIndex].bind(2)
         const texture = this.terrainTextures[tile.terrain][tileIndex].bind(0)
+        const otherTexture = this.terrainTextures[6][tileIndex].bind(1)
 
         this.shader.bind()
         this.squareBuffer.bind()
         this.shader.attributes.position.pointer()
         this.shader.uniforms.texture = texture
+        this.shader.uniforms.otherTexture = otherTexture
+        this.shader.uniforms.blendMode = blendMode
         this.shader.uniforms.pMatrix = pMatrix
         this.shader.uniforms.mvMatrix = mvMatrix
 
