@@ -23,6 +23,7 @@
   },
   "dependencies": {
     "file-component": "^0.1.0",
+    "genie-scx": "0.0.0-alpha.1",
     "gl-buffer": "^2.1.2",
     "gl-mat4": "^1.1.4",
     "gl-shader": "^4.2.1",

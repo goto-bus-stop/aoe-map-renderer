@@ -1,5 +1,6 @@
 const rafloop = require('raf-loop')
 const RecordedGame = require('recage').default
+const genieScx = require('genie-scx')
 const fileReader = require('file-component')
 const MapRenderer = require('./MapRenderer')
 
@@ -16,7 +17,11 @@ function open (file) {
       alert(`Could not open file: ${err.message}`)
       return
     }
-    RecordedGame(Buffer(result)).parseHeader(onHeader)
+    if (/\.mg[lxz]$/.test(file.name)) {
+      RecordedGame(Buffer(result)).parseHeader(onHeader)
+    } else {
+      genieScx.load(Buffer(result), onScx)
+    }
   })
 }
 
@@ -29,6 +34,13 @@ function onHeader (err, header) {
       engine.start()
     })
   }
+}
+
+function onScx (err, scx) {
+  if (err) alert(`Could not read scenario: ${err.message}`)
+  renderer.load(scx.map.tiles).then(() => {
+    engine.start()
+  })
 }
 
 document.body.appendChild(canvas)
